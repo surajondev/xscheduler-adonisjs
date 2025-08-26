@@ -63,7 +63,8 @@
     "edge.js": "^6.2.1",
     "luxon": "^3.7.1",
     "pg": "^8.16.3",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "twitter-api-v2": "^1.25.0"
   },
   "hotHook": {
     "boundaries": [
