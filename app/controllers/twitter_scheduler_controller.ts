@@ -44,8 +44,16 @@ export default class ArticleController {
   /**
    * Show individual record
    */
-  async show({ params }: HttpContext) {
-    return await TwitterScheduler.findByOrFail('id', params?.id)
+  async show({ params, auth }: HttpContext) {
+    const user = auth.user!
+    const social_account_id = params.social_account_id
+    const twitter = await TwitterScheduler.query()
+      .orderBy('created_at', 'desc')
+      .where('user_id', user.id)
+      .where('social_account_id', social_account_id)
+      .first()
+
+    return twitter
   }
 
   /**

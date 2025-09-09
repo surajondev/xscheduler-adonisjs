@@ -7,7 +7,7 @@ import OAuth from 'oauth-1.0a'
 import { createHmac } from 'crypto'
 import encryption from '@adonisjs/core/services/encryption'
 
-@schedule('*/5 * * * *') // Run every 5 minutes
+@schedule('0 * * * *') // every hour at 00 minutes
 export default class PostTweet extends BaseCommand {
   static commandName = 'post:tweet'
   static description = 'Schedule a tweet posting'
@@ -18,7 +18,6 @@ export default class PostTweet extends BaseCommand {
       .where('status', 'scheduled')
       .where('scheduled_at', '<=', now.toISOString())
 
-    console.log('Posts', duePosts)
     for (const post of duePosts) {
       const twitterScheduler = await TwitterScheduler.query()
         .orderBy('created_at', 'desc')
@@ -65,6 +64,7 @@ export default class PostTweet extends BaseCommand {
           headers,
         })
         this.logger.info('Tweet posted successfully:', res.data)
+        await post.merge({ status: 'posted' }).save()
       } catch (error) {
         this.logger.error(
           'Error posting tweet:',

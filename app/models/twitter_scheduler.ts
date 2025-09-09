@@ -11,17 +11,20 @@ export default class TwitterScheduler extends BaseModel {
   @column()
   declare username: string
 
-  @column()
+  @column({ serializeAs: null })
   declare accessToken: string
 
-  @column()
+  @column({ serializeAs: null })
   declare consumerKey: string
 
-  @column()
+  @column({ serializeAs: null })
   declare consumerSecret: string
 
-  @column()
+  @column({ serializeAs: null })
   declare tokenSecret: string
+
+  @column()
+  declare analytics: Record<string, any> | null
 
   @column()
   declare user_id: string
