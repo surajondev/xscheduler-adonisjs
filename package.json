@@ -8,7 +8,7 @@
     "start:server": "node ace serve",
     "start:scheduler": "node ace scheduler:run",
     "start": "concurrently \"npm run start:server\" \"npm run start:scheduler\"",
-    "build": "node ace build",
+    "build": "node ace build --production",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
     "lint": "eslint .",
