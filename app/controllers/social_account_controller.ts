@@ -12,7 +12,7 @@ export default class ArticleController {
   /**
    * Handle form submission for the create action
    */
-  async store({ request, auth, response }: HttpContext) {
+  async store({ request, auth }: HttpContext) {
     const user = auth.user
     const reqData = request.only(['name'])
     return await user?.related('social_account').create(reqData)
@@ -42,7 +42,7 @@ export default class ArticleController {
     await socialAccount?.save()
     return socialAccount
   }
-  
+
   /**
    * Delete record
    */

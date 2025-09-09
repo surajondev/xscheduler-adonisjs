@@ -10,7 +10,7 @@ export default class ArticleController {
   /**
    * Display a list of resource
    */
-  async index({ request, auth, params }: HttpContext) {
+  async index({ auth, params }: HttpContext) {
     const user = auth.user!
     const social_account_id = params.social_account_id
     return await Post.query()
@@ -22,7 +22,7 @@ export default class ArticleController {
   /**
    * Handle form submission for the create action
    */
-  async store({ request, auth, response, params }: HttpContext) {
+  async store({ request, auth, params }: HttpContext) {
     const user = auth.user!
     const social_account_id = params.social_account_id
     const reqData = request.only(['content', 'status', 'scheduled_at'])
@@ -76,7 +76,7 @@ export default class ArticleController {
     console.log('Headers:', headers)
 
     try {
-      const res = await axios({
+      await axios({
         method,
         url,
         data, // Data is sent as the request body

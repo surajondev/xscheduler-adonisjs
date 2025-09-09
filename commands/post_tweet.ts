@@ -1,4 +1,4 @@
-import { BaseCommand, args } from '@adonisjs/core/ace'
+import { BaseCommand } from '@adonisjs/core/ace'
 import { schedule } from 'adonisjs-scheduler'
 import Post from '#models/post'
 import TwitterScheduler from '#models/twitter_scheduler'
