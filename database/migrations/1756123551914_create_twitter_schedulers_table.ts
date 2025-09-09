@@ -7,7 +7,10 @@ export default class extends BaseSchema {
     this.schema.createTable(this.tableName, (table) => {
       table.uuid('id').primary().defaultTo(this.raw('gen_random_uuid()'))
       table.string('username')
-      table.string('token')
+      table.text('consumer_key')
+      table.text('consumer_secret')
+      table.text('access_token')
+      table.text('token_secret')
       table.uuid('user_id').unsigned().references('id').inTable('users').onDelete('CASCADE')
       table
         .uuid('social_account_id')

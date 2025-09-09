@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import TwitterScheduler from '#models/twitter_scheduler'
+import encryption from '@adonisjs/core/services/encryption' // Use the service directly
 
 export default class ArticleController {
   /**
@@ -21,16 +22,25 @@ export default class ArticleController {
   async store({ request, auth, response, params }: HttpContext) {
     const user = auth.user!
     const social_account_id = params.social_account_id
-    const reqData = request.only(['token', 'username'])
+    const reqData = request.only([
+      'access_token',
+      'consumer_key',
+      'consumer_secret',
+      'token_secret',
+      'username',
+    ])
     const payload = {
       ...reqData,
       user_id: user.id,
       social_account_id,
     }
+    payload.consumer_key = encryption.encrypt(payload.consumer_key)
+    payload.consumer_secret = encryption.encrypt(payload.consumer_secret)
+    payload.access_token = encryption.encrypt(payload.access_token)
+    payload.token_secret = encryption.encrypt(payload.token_secret)
     const twitter = await TwitterScheduler.create(payload)
     return response.json({ twitter })
   }
-
   /**
    * Show individual record
    */
@@ -43,17 +53,38 @@ export default class ArticleController {
    */
   async update({ params, request, auth, response }: HttpContext) {
     const user = auth.user!
-    const socialAccount = await TwitterScheduler.query()
+    const twitterScheduler = await TwitterScheduler.query()
       .where('id', params?.id)
       .where('user_id', user.id)
       .first()
-    if (!socialAccount) {
+    if (!twitterScheduler) {
       response.unauthorized({ message: 'Not permitted to perform the action' })
     }
-    const reqData = request.only(['token', 'username'])
-    socialAccount?.merge(reqData)
-    await socialAccount?.save()
-    return socialAccount
+    const reqData = request.only([
+      'access_token',
+      'consumer_key',
+      'consumer_secret',
+      'token_secret',
+      'username',
+    ])
+    const updatedData = {
+      ...reqData,
+      consumer_key: reqData.consumer_key
+        ? encryption.encrypt(reqData.consumer_key)
+        : twitterScheduler?.consumerKey,
+      consumer_secret: reqData.consumer_secret
+        ? encryption.encrypt(reqData.consumer_secret)
+        : twitterScheduler?.consumerSecret,
+      access_token: reqData.access_token
+        ? encryption.encrypt(reqData.access_token)
+        : twitterScheduler?.accessToken,
+      token_secret: reqData.token_secret
+        ? encryption.encrypt(reqData.token_secret)
+        : twitterScheduler?.tokenSecret,
+    }
+    twitterScheduler?.merge(updatedData)
+    await twitterScheduler?.save()
+    return twitterScheduler
   }
 
   /**
@@ -62,15 +93,15 @@ export default class ArticleController {
   async destroy({ params, auth, response }: HttpContext) {
     const user = auth.user!
     const social_account_id = params.social_account_id
-    const socialAccount = await TwitterScheduler.query()
+    const twitterScheduler = await TwitterScheduler.query()
       .where('id', params?.id)
       .where('user_id', user.id)
       .where('social_account_id', social_account_id)
       .first()
-    if (!socialAccount) {
+    if (!twitterScheduler) {
       return response.unauthorized({ message: 'Not permitted to perform the action' })
     }
-    await socialAccount?.delete()
+    await twitterScheduler?.delete()
     return response.json({ message: 'TwitterScheduler Deleted succesfully' })
   }
 }

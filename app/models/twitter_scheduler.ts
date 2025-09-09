@@ -12,7 +12,16 @@ export default class TwitterScheduler extends BaseModel {
   declare username: string
 
   @column()
-  declare token: string
+  declare accessToken: string
+
+  @column()
+  declare consumerKey: string
+
+  @column()
+  declare consumerSecret: string
+
+  @column()
+  declare tokenSecret: string
 
   @column()
   declare user_id: string

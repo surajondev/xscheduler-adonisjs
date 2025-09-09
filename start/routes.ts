@@ -38,7 +38,11 @@ router
     router.delete('twitter_scheduler/:id', '#controllers/twitter_scheduler_controller.destroy')
 
     router.get('social_accounts/:social_account_id/posts', '#controllers/post_controller.index')
-    router.post('social_accounts/:social_account_id/posts', '#controllers/post_controller.store')
+    router.post(
+      'social_accounts/:social_account_id/posts/schedule',
+      '#controllers/post_controller.store'
+    )
+    router.post('social_accounts/:social_account_id/posts/now', '#controllers/post_controller.post')
     router.get('social_accounts/:social_account_id/posts/:id', '#controllers/post_controller.show')
     router.put(
       'social_accounts/:social_account_id/posts/:id',
