@@ -5,7 +5,7 @@ import Post from '#models/post'
 import TwitterScheduler from '#models/twitter_scheduler'
 import encryption from '@adonisjs/core/services/encryption'
 
-@schedule('0 * * * *') // every hour at 00 minutes
+@schedule('*/15 * * * *') // every 15 minutes
 export default class PostTweet extends BaseCommand {
   static commandName = 'post:tweet'
   static description = 'Schedule a tweet posting'
