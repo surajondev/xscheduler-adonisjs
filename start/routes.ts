@@ -8,6 +8,11 @@
 */
 
 import router from '@adonisjs/core/services/router'
+
+router.get('/health', async () => {
+  return { status: 'running' }
+})
+
 import { middleware } from './kernel.js'
 
 router.on('/').render('pages/home')
