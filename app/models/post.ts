@@ -23,6 +23,9 @@ export default class Post extends BaseModel {
   @column()
   declare social_account_id: string
 
+  @column()
+  declare media_id: string | null
+
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 
