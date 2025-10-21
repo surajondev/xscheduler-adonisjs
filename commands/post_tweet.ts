@@ -1,10 +1,8 @@
+import { TwitterApi } from 'twitter-api-v2'
 import { BaseCommand } from '@adonisjs/core/ace'
 import { schedule } from 'adonisjs-scheduler'
 import Post from '#models/post'
 import TwitterScheduler from '#models/twitter_scheduler'
-import axios from 'axios'
-import OAuth from 'oauth-1.0a'
-import { createHmac } from 'crypto'
 import encryption from '@adonisjs/core/services/encryption'
 
 @schedule('0 * * * *') // every hour at 00 minutes
@@ -13,6 +11,7 @@ export default class PostTweet extends BaseCommand {
   static description = 'Schedule a tweet posting'
 
   async run() {
+    this.logger.info('Twitter scheduler started')
     const now = new Date()
     const duePosts = await Post.query()
       .where('status', 'scheduled')
@@ -34,42 +33,30 @@ export default class PostTweet extends BaseCommand {
       const decryptedAccessToken = encryption.decrypt(twitterScheduler.accessToken)
       const decryptedTokenSecret = encryption.decrypt(twitterScheduler.tokenSecret)
 
-      const oauth = new OAuth({
+      const client = new TwitterApi({
         //@ts-ignore
-        consumer: { key: decryptedConsumerKey, secret: decryptedConsumerSecret },
-        signature_method: 'HMAC-SHA1',
-        hash_function(baseString, key) {
-          return createHmac('sha1', key).update(baseString).digest('base64')
-        },
+        appKey: decryptedConsumerKey,
+        appSecret: decryptedConsumerSecret,
+        accessToken: decryptedAccessToken,
+        accessSecret: decryptedTokenSecret,
       })
 
-      const token = { key: decryptedAccessToken, secret: decryptedTokenSecret }
-      const url = 'https://api.x.com/2/tweets'
-      const method = 'POST'
-      const data = {
+      const tweetData: { text: string; media?: { media_ids: string[] } } = {
         text: post.content,
       }
 
-      //@ts-ignore
-      const oauthToken = oauth.authorize({ url, method }, token)
-      //@ts-ignore
-      const headers: { [key: string]: string } = oauth.toHeader(oauthToken)
-      headers['Content-Type'] = 'application/json'
+      if (post.media_id) {
+        tweetData.media = { media_ids: post.media_id.split(',') }
+      }
 
       try {
-        const res = await axios({
-          method,
-          url,
-          data,
-          headers,
-        })
+        //@ts-ignore
+        const res = await client.v2.tweet(tweetData)
+        //@ts-ignore
         this.logger.info('Tweet posted successfully:', res.data)
         await post.merge({ status: 'posted' }).save()
       } catch (error) {
-        this.logger.error(
-          'Error posting tweet:',
-          error.response ? error.response.data : error.message
-        )
+        this.logger.error('Error posting tweet:', error)
       }
     }
   }

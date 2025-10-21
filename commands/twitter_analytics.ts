@@ -12,6 +12,7 @@ export default class TweetAnalytics extends BaseCommand {
   static description = 'Get Analytics for Tweets'
 
   async run() {
+    this.logger.info('Twitter analytics started')
     const schedulers = await TwitterScheduler.query().orderBy('created_at', 'desc')
 
     if (!schedulers.length) {
@@ -36,7 +37,7 @@ export default class TweetAnalytics extends BaseCommand {
       })
 
       const token = { key: decryptedAccessToken, secret: decryptedTokenSecret }
-      const url = 'https://api.x.com/2/analytics' // ⚠️ replace with correct endpoint
+      const url = 'https://api.x.com/2/tweets/analytics' // ⚠️ replace with correct endpoint
       const method = 'GET'
 
       //@ts-ignore
@@ -62,7 +63,7 @@ export default class TweetAnalytics extends BaseCommand {
           .save()
       } catch (error) {
         this.logger.error(
-          `Error fetching analytics for ${twitter.username}:`,
+          `Error fetching analytics for ${twitter.username}: ${error}`,
           error.response ? error.response.data : error.message
         )
       }
