@@ -7,7 +7,7 @@
   "scripts": {
     "start:server": "node ace serve",
     "start:scheduler": "node ace scheduler:run",
-    "start": "concurrently \"npm run start:server\" \"npm run start:scheduler\"",
+    "start": "npm run build && cd build && concurrently \"node server.js\" \"node ace.js scheduler:run\"",
     "build": "node ace build",
     "dev": "node ace serve --hmr",
     "test": "node ace test",
