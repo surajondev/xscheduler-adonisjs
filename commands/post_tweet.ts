@@ -10,12 +10,23 @@ export default class PostTweet extends BaseCommand {
   static commandName = 'post:tweet'
   static description = 'Schedule a tweet posting'
 
+  static options = {
+    startApp: true,
+  }
+
   async run() {
     this.logger.info('Twitter scheduler started')
     const now = new Date()
+    this.logger.info('--- All Posts in DB ---')
+    const allPosts = await Post.all()
+    this.logger.info(`Found ${allPosts.length} total posts`)
+
+    this.logger.info(`Checking for due posts at ${now.toISOString()}`)
     const duePosts = await Post.query()
       .where('status', 'scheduled')
       .where('scheduled_at', '<=', now.toISOString())
+
+    this.logger.info(`Found ${duePosts.length} due posts`)
 
     for (const post of duePosts) {
       const twitterScheduler = await TwitterScheduler.query()
