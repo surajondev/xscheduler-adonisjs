@@ -1,2 +1,2 @@
-web: node build/server.js
-worker: node build/ace.js scheduler:run
+web: node build/bin/server.js
+worker: node build/bin/ace.js scheduler:run
