@@ -4,6 +4,8 @@ import Post from '#models/post'
 import TwitterScheduler from '#models/twitter_scheduler'
 import encryption from '@adonisjs/core/services/encryption'
 import axios from 'axios'
+import OAuth from 'oauth-1.0a'
+import { createHmac } from 'node:crypto'
 
 export default class ArticleController {
   /**
