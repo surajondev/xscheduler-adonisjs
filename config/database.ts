@@ -18,6 +18,11 @@ const dbConfig = defineConfig({
         naturalSort: true,
         paths: ['database/migrations'],
       },
+      pool: {
+        min: 0,
+        max: 10,
+        idleTimeoutMillis: 30000,
+      },
     },
   },
 })

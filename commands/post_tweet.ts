@@ -18,57 +18,59 @@ export default class PostTweet extends BaseCommand {
     this.logger.info('Twitter scheduler started')
     const now = new Date()
     this.logger.info('--- All Posts in DB ---')
-    const allPosts = await Post.all()
-    this.logger.info(`Found ${allPosts.length} total posts`)
-
     this.logger.info(`Checking for due posts at ${now.toISOString()}`)
-    const duePosts = await Post.query()
-      .where('status', 'scheduled')
-      .where('scheduled_at', '<=', now.toISOString())
+    try {
+      const duePosts = await Post.query()
+        .where('status', 'scheduled')
+        .where('scheduled_at', '<=', now.toISOString())
 
-    this.logger.info(`Found ${duePosts.length} due posts`)
+      this.logger.info(`Found ${duePosts.length} due posts`)
 
-    for (const post of duePosts) {
-      const twitterScheduler = await TwitterScheduler.query()
-        .orderBy('created_at', 'desc')
-        .where('social_account_id', post?.social_account_id)
-        .first()
-      if (!twitterScheduler) {
-        this.logger.error('No Twitter scheduler configuration found')
-        return
+      for (const post of duePosts) {
+        // ... (existing loop content)
+        const twitterScheduler = await TwitterScheduler.query()
+          .orderBy('created_at', 'desc')
+          .where('social_account_id', post?.social_account_id)
+          .first()
+        if (!twitterScheduler) {
+          this.logger.error('No Twitter scheduler configuration found')
+          continue // Use continue instead of return to process other posts
+        }
+
+        // Decrypt sensitive fields
+        const decryptedConsumerKey = encryption.decrypt(twitterScheduler.consumerKey)
+        const decryptedConsumerSecret = encryption.decrypt(twitterScheduler.consumerSecret)
+        const decryptedAccessToken = encryption.decrypt(twitterScheduler.accessToken)
+        const decryptedTokenSecret = encryption.decrypt(twitterScheduler.tokenSecret)
+
+        const client = new TwitterApi({
+          //@ts-ignore
+          appKey: decryptedConsumerKey,
+          appSecret: decryptedConsumerSecret,
+          accessToken: decryptedAccessToken,
+          accessSecret: decryptedTokenSecret,
+        })
+
+        const tweetData: { text: string; media?: { media_ids: string[] } } = {
+          text: post.content,
+        }
+
+        if (post.media_id) {
+          tweetData.media = { media_ids: post.media_id.split(',') }
+        }
+
+        try {
+          //@ts-ignore
+          const res = await client.v2.tweet(tweetData)
+          //@ts-ignore
+          this.logger.info('Tweet posted successfully:', res.data)
+          await post.merge({ status: 'posted' }).save()
+        } catch (error) {
+          this.logger.error('Error posting tweet:', error)
+        }
       }
-
-      // Decrypt sensitive fields
-      const decryptedConsumerKey = encryption.decrypt(twitterScheduler.consumerKey)
-      const decryptedConsumerSecret = encryption.decrypt(twitterScheduler.consumerSecret)
-      const decryptedAccessToken = encryption.decrypt(twitterScheduler.accessToken)
-      const decryptedTokenSecret = encryption.decrypt(twitterScheduler.tokenSecret)
-
-      const client = new TwitterApi({
-        //@ts-ignore
-        appKey: decryptedConsumerKey,
-        appSecret: decryptedConsumerSecret,
-        accessToken: decryptedAccessToken,
-        accessSecret: decryptedTokenSecret,
-      })
-
-      const tweetData: { text: string; media?: { media_ids: string[] } } = {
-        text: post.content,
-      }
-
-      if (post.media_id) {
-        tweetData.media = { media_ids: post.media_id.split(',') }
-      }
-
-      try {
-        //@ts-ignore
-        const res = await client.v2.tweet(tweetData)
-        //@ts-ignore
-        this.logger.info('Tweet posted successfully:', res.data)
-        await post.merge({ status: 'posted' }).save()
-      } catch (error) {
-        this.logger.error('Error posting tweet:', error)
-      }
+    } catch (error) {
+      this.logger.error('Error querying due posts or connecting to DB:', error)
     }
   }
 }
