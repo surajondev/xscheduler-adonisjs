@@ -92,41 +92,18 @@ export default class ArticleController {
     const decryptedAccessToken = encryption.decrypt(twitterScheduler.accessToken)
     const decryptedTokenSecret = encryption.decrypt(twitterScheduler.tokenSecret)
 
-    //@ts-ignore
-    const oauth = new OAuth({
+    const client = new TwitterApi({
       //@ts-ignore
-      consumer: { key: decryptedConsumerKey, secret: decryptedConsumerSecret },
-      signature_method: 'HMAC-SHA1',
-      hash_function(baseString, key) {
-        //@ts-ignore
-        return createHmac('sha1', key).update(baseString).digest('base64')
-      },
+      appKey: decryptedConsumerKey,
+      appSecret: decryptedConsumerSecret,
+      accessToken: decryptedAccessToken,
+      accessSecret: decryptedTokenSecret,
     })
 
-    const token = { key: decryptedAccessToken, secret: decryptedTokenSecret }
-    const url = 'https://api.x.com/2/tweets'
-    const method = 'POST'
-    const data = {
-      text: request.input('content'),
-    }
-
-    // Authorize without including data in OAuth parameters
-    //@ts-ignore
-    const oauthToken = oauth.authorize({ url, method }, token)
-    //@ts-ignore
-    const headers: { [key: string]: string } = oauth.toHeader(oauthToken)
-    headers['Content-Type'] = 'application/json'
-
-    console.log('OAuth Token:', oauthToken)
-    console.log('Headers:', headers)
-
     try {
-      await axios({
-        method,
-        url,
-        data, // Data is sent as the request body
-        headers,
-      })
+      const tweet = await client.v2.tweet(request.input('content'))
+      console.log('Tweet created:', tweet)
+
       const reqData = request.only(['content', 'status', 'scheduled_at'])
       const payload = {
         ...reqData,
@@ -134,10 +111,10 @@ export default class ArticleController {
       }
       return await user?.related('post').create(payload)
     } catch (error) {
-      console.error('Error:', error.response ? error.response.data : error.message)
+      console.error('Error posting tweet:', error)
       return response.status(401).json({
         error: 'Unauthorized',
-        details: error.response ? error.response.data : error.message,
+        details: error.message || 'Failed to post tweet',
       })
     }
   }
