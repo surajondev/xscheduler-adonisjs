@@ -3,7 +3,6 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Post from '#models/post'
 import TwitterScheduler from '#models/twitter_scheduler'
 import encryption from '@adonisjs/core/services/encryption'
-import axios from 'axios'
 
 export default class ArticleController {
   /**
