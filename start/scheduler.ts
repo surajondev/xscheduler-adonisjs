@@ -4,6 +4,6 @@ import PostTweet from '../commands/post_tweet.js'
 
 import PingServer from '../commands/ping_server.js'
 
-scheduler.command(PostTweet).everyFifteenMinutes().withoutOverlapping()
+scheduler.command(PostTweet).everyFiveMinutes().withoutOverlapping()
 scheduler.command(PingServer).everyTenMinutes().withoutOverlapping()
 // scheduler.command(TweetAnalytics).everyMinute().withoutOverlapping()
