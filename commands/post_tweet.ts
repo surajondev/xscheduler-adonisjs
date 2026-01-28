@@ -49,7 +49,13 @@ export default class PostTweet extends BaseCommand {
           const decryptedAccessToken = encryption.decrypt(twitterScheduler.accessToken) as string
           const decryptedTokenSecret = encryption.decrypt(twitterScheduler.tokenSecret) as string
 
-          this.logger.info(`Debug: App Key starts with: ${decryptedConsumerKey?.substring(0, 4)}`)
+          const appKey = env.get('APP_KEY')
+          this.logger.info(
+            `Debug: Environment APP_KEY starts with: ${appKey ? appKey.substring(0, 5) : 'UNDEFINED'}`
+          )
+          this.logger.info(
+            `Debug: Decrypted App Key starts with: ${decryptedConsumerKey?.substring(0, 4)}`
+          )
           this.logger.info(
             `Debug: Access Token starts with: ${decryptedAccessToken?.substring(0, 50)}`
           )
