@@ -42,13 +42,19 @@ export default class PostTweet extends BaseCommand {
           }
 
           // Decrypt sensitive fields
-          const decryptedConsumerKey = encryption.decrypt(twitterScheduler.consumerKey)
-          const decryptedConsumerSecret = encryption.decrypt(twitterScheduler.consumerSecret)
-          const decryptedAccessToken = encryption.decrypt(twitterScheduler.accessToken)
-          const decryptedTokenSecret = encryption.decrypt(twitterScheduler.tokenSecret)
+          const decryptedConsumerKey = encryption.decrypt(twitterScheduler.consumerKey) as string
+          const decryptedConsumerSecret = encryption.decrypt(
+            twitterScheduler.consumerSecret
+          ) as string
+          const decryptedAccessToken = encryption.decrypt(twitterScheduler.accessToken) as string
+          const decryptedTokenSecret = encryption.decrypt(twitterScheduler.tokenSecret) as string
+
+          this.logger.info(`Debug: App Key starts with: ${decryptedConsumerKey?.substring(0, 4)}`)
+          this.logger.info(
+            `Debug: Access Token starts with: ${decryptedAccessToken?.substring(0, 50)}`
+          )
 
           const client = new TwitterApi({
-            //@ts-ignore
             appKey: decryptedConsumerKey,
             appSecret: decryptedConsumerSecret,
             accessToken: decryptedAccessToken,
