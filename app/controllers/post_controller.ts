@@ -23,7 +23,7 @@ export default class ArticleController {
   async store({ request, auth, params }: HttpContext) {
     const user = auth.user!
     const social_account_id = params.social_account_id
-    const reqData = request.only(['content', 'status', 'scheduled_at', 'attachments'])
+    const reqData = request.only(['content', 'status', 'scheduled_at', 'attachments', 'threads'])
 
     const mediaIds: string[] = []
 
@@ -68,6 +68,7 @@ export default class ArticleController {
       scheduled_at: reqData.scheduled_at,
       social_account_id,
       media_id: mediaIds.join(','),
+      threads: reqData.threads,
     }
 
     return await user?.related('post').create(payload)
@@ -98,10 +99,29 @@ export default class ArticleController {
     })
 
     try {
-      const tweet = await client.v2.tweet(request.input('content'))
-      console.log('Tweet created:', tweet)
+      const threads = request.input('threads')
+      let tweet
 
-      const reqData = request.only(['content', 'status', 'scheduled_at'])
+      if (threads && Array.isArray(threads) && threads.length > 0) {
+        // Filter out empty strings from threads
+        const validThreads = threads.filter((t: string) => t.trim() !== '')
+        if (validThreads.length > 0) {
+          const threadTweets = [
+            { text: request.input('content') },
+            ...validThreads.map((t: string) => ({ text: t })),
+          ]
+          //@ts-ignore
+          tweet = await client.v2.tweetThread(threadTweets)
+        } else {
+          tweet = await client.v2.tweet(request.input('content'))
+        }
+      } else {
+        tweet = await client.v2.tweet(request.input('content'))
+      }
+
+      console.log('Tweet/Thread created:', tweet)
+
+      const reqData = request.only(['content', 'status', 'scheduled_at', 'threads'])
       const payload = {
         ...reqData,
         social_account_id,

@@ -32,6 +32,12 @@ export default class Post extends BaseModel {
   @belongsTo(() => SocialAccount)
   declare social_account: BelongsTo<typeof SocialAccount>
 
+  @column({
+    prepare: (value: string[]) => JSON.stringify(value),
+    consume: (value: string) => JSON.parse(value),
+  })
+  declare threads: string[] | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

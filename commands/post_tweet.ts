@@ -76,7 +76,20 @@ export default class PostTweet extends BaseCommand {
           }
 
           //@ts-ignore
-          const res = await client.v2.tweet(tweetData)
+          let res
+          if (post.threads && post.threads.length > 0) {
+            // Threads logic
+            const threadTweets = [
+              tweetData,
+              ...post.threads.filter((t) => t.trim() !== '').map((t: string) => ({ text: t })),
+            ]
+            //@ts-ignore
+            res = await client.v2.tweetThread(threadTweets)
+          } else {
+            //@ts-ignore
+            res = await client.v2.tweet(tweetData)
+          }
+
           //@ts-ignore
           this.logger.info('Tweet posted successfully:', res.data)
           await post.merge({ status: 'posted' }).save()
